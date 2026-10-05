@@ -1,0 +1,13 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    ports:
+      - "5433:5432"
+    env_file:
+      - .env
+    volumes:
+      - local_db:${PGDATA}
+
+volumes:
+  local_db:
