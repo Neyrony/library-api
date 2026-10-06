@@ -172,4 +172,9 @@ MAILERS = {
     },
 }
 
-REST_FRAMEWORK = {"DEFAULT_PAGINATION_CLASS": "books.pagination.BasePagination"}
+REST_FRAMEWORK = {
+    "DEFAULT_PAGINATION_CLASS": "books.pagination.BasePagination",
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication"
+    ],
+}
