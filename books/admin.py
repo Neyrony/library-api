@@ -14,4 +14,3 @@ class BookAdmin(ModelAdmin):
     list_filter = ("cover",)
     ordering = ("title",)
     list_per_page = 25
-    fieldsets = ()
