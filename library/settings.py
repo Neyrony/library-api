@@ -62,6 +62,25 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+if DEBUG:
+    INSTALLED_APPS += ["debug_toolbar"]
+
+    MIDDLEWARE = (
+        MIDDLEWARE[:1]
+        + ["debug_toolbar.middleware.DebugToolbarMiddleware"]
+        + MIDDLEWARE[1:]
+    )
+
+    INTERNAL_IPS = [
+        "127.0.0.1",
+    ]
+
+    DEBUG_TOOLBAR_CONFIG = {
+        "IS_RUNNING_TESTS": False,
+        "SHOW_TOOLBAR_CALLBACK": lambda request: DEBUG
+        and not any("test" in arg for arg in sys.argv),
+    }
+
 ROOT_URLCONF = "library.urls"
 
 TEMPLATES = [
