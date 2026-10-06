@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from core.test_case_authenticated import APITestCaseAuthenticated
+from core.test_case_authenticated import APITestCaseAdmin
 from user.serializers import UserManageSerializer
 
 
@@ -29,7 +29,7 @@ class UnauthenticatedUserTest(APITestCase):
         self.assertTrue(user.check_password(data["password"]))
 
 
-class AuthenticatedUserTest(APITestCaseAuthenticated):
+class AuthenticatedUserTest(APITestCaseAdmin):
     def test_profile_get(self):
         response = self.client.get(reverse("user:profile"))
 
