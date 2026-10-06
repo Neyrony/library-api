@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.test_case_authenticated import APITestCaseAuthenticated
 from user.serializers import UserManageSerializer
@@ -68,3 +70,15 @@ class AuthenticatedUserTest(APITestCaseAuthenticated):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertEqual(response.data["email"], data["email"])
+
+    def test_logout(self):
+        refresh_token = RefreshToken.for_user(self.user)
+
+        response = self.client.post(
+            reverse("user:logout"), data={"refresh_token": str(refresh_token)}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        with self.assertRaises(TokenError):
+            refresh_token.check_blacklist()
