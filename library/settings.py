@@ -26,7 +26,7 @@ load_dotenv()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv(
-    "DJANGO_SECRET_KEY", "y)4upws3u0&7=uqjrv!9(!f#c#o9ry$swefx774)@cz#43%^$h"
+    "DJANGO_SECRET_KEY", "y)4upws3u0&7=uqjrv!9(!f#c#o9ry+swefx774)@cz#43%^+h"
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
+    "books",
 ]
 
 MIDDLEWARE = [
@@ -59,6 +61,25 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+if DEBUG:
+    INSTALLED_APPS += ["debug_toolbar"]
+
+    MIDDLEWARE = (
+        MIDDLEWARE[:1]
+        + ["debug_toolbar.middleware.DebugToolbarMiddleware"]
+        + MIDDLEWARE[1:]
+    )
+
+    INTERNAL_IPS = [
+        "127.0.0.1",
+    ]
+
+    DEBUG_TOOLBAR_CONFIG = {
+        "IS_RUNNING_TESTS": False,
+        "SHOW_TOOLBAR_CALLBACK": lambda request: DEBUG
+        and not any("test" in arg for arg in sys.argv),
+    }
 
 ROOT_URLCONF = "library.urls"
 
@@ -148,3 +169,5 @@ MAILERS = {
         "BACKEND": "django.core.mail.backends.console.EmailBackend",
     },
 }
+
+REST_FRAMEWORK = {"DEFAULT_PAGINATION_CLASS": "books.pagination.BasePagination"}
