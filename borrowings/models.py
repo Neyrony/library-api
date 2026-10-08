@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 
 from borrowings.validation import validate_dates, validate_user_and_book
 
@@ -18,6 +18,11 @@ class Borrowing(models.Model):
 
     def __str__(self):
         return f"{self.book.title} ({self.borrow_date})"
+
+    @transaction.atomic
+    def delete(self, *args, **kwargs):
+        self.book.increase_inventory()
+        return super().delete(*args, **kwargs)
 
     def clean(self):
         if self.id:
