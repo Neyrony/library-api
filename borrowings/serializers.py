@@ -1,9 +1,7 @@
 from django.db import transaction
-from django.db.models import F
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from books.models import Book
 from books.serializers import BookListRetrieveSerializer
 from borrowings.models import Borrowing
 from user.serializers import UserSerializer
@@ -31,11 +29,7 @@ class BorrowingSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        book = validated_data["book"]
-
-        updated = Book.objects.filter(pk=book.id, inventory__gt=0).update(
-            inventory=F("inventory") - 1
-        )
+        updated = validated_data["book"].decrease_inventory()
 
         if not updated:
             raise ValidationError("There are no books available for borrowing.")
@@ -57,6 +51,7 @@ class BorrowingListSerializer(BorrowingSerializer):
             "user",
             "book",
         )
+
 
 class BorrowingRetrieveSerializer(BorrowingSerializer):
     user = UserSerializer(read_only=True)

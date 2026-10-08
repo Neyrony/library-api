@@ -1,6 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import UniqueConstraint
+from django.db.models import UniqueConstraint, F
 from django.utils.translation import gettext_lazy as _
 
 
@@ -25,6 +25,18 @@ class Book(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.author})"
+
+    def increase_inventory(self):
+        Book.objects.filter(id=self.id).update(inventory=F("inventory") + 1)
+
+    def decrease_inventory(self):
+        update = Book.objects.filter(id=self.id, inventory__gt=0).update(
+            inventory=F("inventory") - 1
+        )
+
+        if update:
+            return True
+        return False
 
     class Meta:
         ordering = ["title"]
