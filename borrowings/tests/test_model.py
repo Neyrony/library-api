@@ -7,23 +7,10 @@ from django.utils import timezone
 
 from books.models import Book
 from borrowings.models import Borrowing
+from borrowings.tests.test_base import BorrowingTestData
 
 
-class TestModel(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.book = Book.objects.create(
-            title="title", author="author", inventory=3, daily_fee=3.2
-        )
-        cls.user = get_user_model().objects.create_user(
-            email="user@example.com", password="test12345"
-        )
-        cls.borrowing = Borrowing.objects.create(
-            expected_return_date=timezone.localdate() + timedelta(days=1),
-            user=cls.user,
-            book=cls.book,
-        )
-
+class TestModel(BorrowingTestData, TestCase):
     def test_str(self):
         self.assertEqual(
             str(self.borrowing),
@@ -34,7 +21,7 @@ class TestModel(TestCase):
         with self.assertRaises(ValidationError):
             Borrowing.objects.create(
                 expected_return_date=timezone.localdate() + timedelta(days=2),
-                user=self.user,
+                user=self.test_user,
                 book=self.book,
                 actual_return_date=timezone.localdate() + timedelta(days=1),
             )
@@ -42,13 +29,13 @@ class TestModel(TestCase):
         with self.assertRaises(ValidationError):
             Borrowing.objects.create(
                 expected_return_date=timezone.localdate() - timedelta(days=2),
-                user=self.user,
+                user=self.test_user,
                 book=self.book,
             )
 
         with self.assertRaises(ValidationError):
-            self.borrowing.expected_return_date = timezone.localdate() + timedelta(
-                days=3
+            self.borrowing.expected_return_date = (
+                self.borrowing.expected_return_date + timedelta(days=1)
             )
             self.borrowing.save()
 

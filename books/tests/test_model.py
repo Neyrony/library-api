@@ -1,14 +1,8 @@
 from django.test import TestCase
 
-from books.models import Book
+from books.tests.test_base import BookTestData
 
 
-class TestModel(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.book = Book.objects.create(
-            title="title", author="author", inventory=3, daily_fee=3.2
-        )
-
+class TestModel(BookTestData, TestCase):
     def test_str(self):
         self.assertEqual(str(self.book), f"{self.book.title} ({self.book.author})")

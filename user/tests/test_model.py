@@ -1,15 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
+from user.tests.test_base import UserTestData
 
-class UserTest(TestCase):
-    @classmethod
-    def setUpTestData(cls) -> None:
-        cls.user = get_user_model().objects.create_user(
-            email="user@example.com",
-            password="test12345",
-        )
 
+class UserTest(UserTestData, TestCase):
     def test_username_absence(self):
         with self.assertRaises(TypeError):
             get_user_model().objects.create_user(

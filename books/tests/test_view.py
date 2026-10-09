@@ -4,6 +4,7 @@ from rest_framework.test import APITestCase
 
 from books.models import Book
 from books.serializers import BookListRetrieveSerializer
+from books.tests.test_base import BookTestData
 from core.test_case_authenticated import APITestCaseAuthenticated, APITestCaseAdmin
 
 LIST_URL = reverse("books:book-list")
@@ -11,14 +12,6 @@ LIST_URL = reverse("books:book-list")
 
 def get_detailed_url(pk):
     return reverse("books:book-detail", kwargs={"pk": pk})
-
-
-class BookTestData:
-    @classmethod
-    def setUpTestData(cls) -> None:
-        cls.book = Book.objects.create(
-            title="Test Book", author="Test Author", inventory=10, daily_fee=1
-        )
 
 
 class UnauthenticatedUserTest(BookTestData, APITestCase):

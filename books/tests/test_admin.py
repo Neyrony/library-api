@@ -1,10 +1,11 @@
 from django.urls import reverse
 
 from books.models import Book
+from books.tests.test_base import BookTestData
 from core.test_case_authenticated import TestCaseAuthenticated
 
 
-class BookAdminTest(TestCaseAuthenticated):
+class BookAdminTest(BookTestData, TestCaseAuthenticated):
     @classmethod
     def setUpTestData(cls) -> None:
         cls.book = Book.objects.create(
