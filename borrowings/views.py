@@ -65,7 +65,13 @@ class BorrowingsViewSet(
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(detail=True, methods=["POST"], url_path="return", url_name="return", permission_classes=[IsAdminUser])
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_path="return",
+        url_name="return",
+        permission_classes=[IsAdminUser],
+    )
     def return_book(self, request, pk=None):
         borrowing = self.get_object()
 
