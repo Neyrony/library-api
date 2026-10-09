@@ -21,7 +21,7 @@ class TestModel(BorrowingTestData, TestCase):
         with self.assertRaises(ValidationError):
             Borrowing.objects.create(
                 expected_return_date=timezone.localdate() + timedelta(days=2),
-                user=self.user,
+                user=self.test_user,
                 book=self.book,
                 actual_return_date=timezone.localdate() + timedelta(days=1),
             )
@@ -29,7 +29,7 @@ class TestModel(BorrowingTestData, TestCase):
         with self.assertRaises(ValidationError):
             Borrowing.objects.create(
                 expected_return_date=timezone.localdate() - timedelta(days=2),
-                user=self.user,
+                user=self.test_user,
                 book=self.book,
             )
 

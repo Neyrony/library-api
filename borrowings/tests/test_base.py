@@ -13,11 +13,11 @@ class BorrowingTestData:
         cls.book = Book.objects.create(
             title="title", author="author", inventory=3, daily_fee=3.2
         )
-        cls.user = get_user_model().objects.create_user(
+        cls.test_user = get_user_model().objects.create_user(
             email="user@example.com", password="test12345"
         )
         cls.borrowing = Borrowing.objects.create(
             expected_return_date=timezone.localdate() + timedelta(days=3),
-            user=cls.user,
+            user=cls.test_user,
             book=cls.book,
         )
