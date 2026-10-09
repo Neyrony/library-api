@@ -2,7 +2,7 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
 from borrowings.models import Borrowing
@@ -65,7 +65,7 @@ class BorrowingsViewSet(
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(detail=True, methods=["POST"], url_path="return", url_name="return")
+    @action(detail=True, methods=["POST"], url_path="return", url_name="return", permission_classes=[IsAdminUser])
     def return_book(self, request, pk=None):
         borrowing = self.get_object()
 
