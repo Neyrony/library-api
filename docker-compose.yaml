@@ -55,9 +55,23 @@ services:
       - "8081:8081"
     restart: on-failure
     environment:
-      - REDIS_HOSTS=redis:redis:6379:0:${REDIS_PASSWORD}
+      - REDIS_HOSTS=localhost:redis:6379:0:${REDIS_PASSWORD}
     depends_on:
       - redis
+
+  flower:
+    build:
+      context: .
+    command: celery -A library flower -l INFO
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    restart: on-failure
+    depends_on:
+      - celery
+      - redis
+
 
 volumes:
   local_db:
