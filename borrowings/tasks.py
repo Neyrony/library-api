@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from borrowings.models import Borrowing
 
-CHAT_URL = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
+TELEGRAM_URL = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
 
 
 @shared_task
@@ -21,7 +21,7 @@ def send_telegram_borrowing_notification(pk):
     }
 
     requests.post(
-        CHAT_URL,
+        TELEGRAM_URL,
         json=data,
     )
 
@@ -34,7 +34,7 @@ def daily_overdue_borrowing_notification():
 
     if overdue_borrowing:
         requests.post(
-            CHAT_URL,
+            TELEGRAM_URL,
             json={
                 "chat_id": settings.TELEGRAM_CHAT_ID,
                 "text": "List of all overdue borrowings for today",
@@ -45,7 +45,7 @@ def daily_overdue_borrowing_notification():
             send_telegram_borrowing_notification.delay(borrow_id)
     else:
         requests.post(
-            CHAT_URL,
+            TELEGRAM_URL,
             json={
                 "chat_id": settings.TELEGRAM_CHAT_ID,
                 "text": "No borrowings overdue today!",
