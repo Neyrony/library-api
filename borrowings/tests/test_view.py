@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.urls import reverse
 from django.utils import timezone
@@ -70,7 +71,8 @@ class AuthenticatedUserTest(BorrowingTestData, APITestCaseAuthenticated):
         self.assertEqual(response.data, borrowing_serializer.data)
 
     @freeze_time("2026-10-9")
-    def test_create(self):
+    @patch("borrowings.views.send_telegram_borrowing_notification")
+    def test_create(self, mock_celery_task):
         data = {
             "expected_return_date": timezone.localdate() + timedelta(days=1),
             "book": self.book.pk,
@@ -89,6 +91,8 @@ class AuthenticatedUserTest(BorrowingTestData, APITestCaseAuthenticated):
         )
         self.assertEqual(response.data["book"], data["book"])
         self.assertEqual(response.data["borrow_date"], borrow_date.strftime("%Y-%m-%d"))
+
+        mock_celery_task.delay.assert_called_once_with(response.data["id"])
 
 
 class AdminUserTest(BorrowingTestData, APITestCaseAdmin):
