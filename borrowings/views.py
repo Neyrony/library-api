@@ -65,7 +65,7 @@ class BorrowingsViewSet(
 
     def perform_create(self, serializer):
         borrowing = serializer.save(user=self.request.user)
-        send_telegram_borrowing_notification(borrowing)
+        send_telegram_borrowing_notification.delay(borrowing.pk)
 
     @action(
         detail=True,

@@ -1,10 +1,14 @@
 import requests
+from celery import shared_task
 from django.conf import settings
 
 from borrowings.models import Borrowing
 
 
-def send_telegram_borrowing_notification(borrowing: Borrowing):
+@shared_task
+def send_telegram_borrowing_notification(pk):
+    borrowing = Borrowing.objects.get(pk=pk)
+
     chat_url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
 
     data = {
