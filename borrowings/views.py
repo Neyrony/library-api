@@ -12,6 +12,7 @@ from borrowings.serializers import (
     BorrowingSerializer,
     EmptySerializer,
 )
+from borrowings.tasks import send_telegram_borrowing_notification
 
 
 class BorrowingsViewSet(
@@ -63,7 +64,8 @@ class BorrowingsViewSet(
         return BorrowingSerializer
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        borrowing = serializer.save(user=self.request.user)
+        send_telegram_borrowing_notification(borrowing)
 
     @action(
         detail=True,
