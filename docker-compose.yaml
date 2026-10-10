@@ -49,6 +49,15 @@ services:
     volumes:
       - ./:/app
 
+  redis_commander:
+    image: rediscommander/redis-commander
+    ports:
+      - "8081:8081"
+    restart: on-failure
+    environment:
+      - REDIS_HOSTS=redis:redis:6379:0:${REDIS_PASSWORD}
+    depends_on:
+      - redis
 
 volumes:
   local_db:
