@@ -49,6 +49,21 @@ services:
     volumes:
       - ./:/app
 
+  celery_beat:
+    build:
+      context: .
+    command: >
+      sh -c "python manage.py wait_for_db &&
+      celery -A library beat -l INFO"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - celery
+      - library
+    volumes:
+      - ./:/app
+
   redis_commander:
     image: rediscommander/redis-commander
     ports:
@@ -71,6 +86,8 @@ services:
     depends_on:
       - celery
       - redis
+    volumes:
+      - ./:/app
 
 
 volumes:
