@@ -223,3 +223,9 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour=8, minute=0),
     }
 }
+
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+
+DOMAIN = "127.0.0.1:8001"
