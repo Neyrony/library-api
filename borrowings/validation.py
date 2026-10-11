@@ -3,7 +3,7 @@ from django.utils import timezone
 
 def validate_dates(instance, old_instance, exception):
     if not old_instance:
-        if timezone.localdate() > instance.expected_return_date:
+        if timezone.localdate() >= instance.expected_return_date:
             raise exception("Expected return date should be greater than borrow date")
         elif instance.actual_return_date is not None:
             raise exception("Actual return date can not be assign on creation")
