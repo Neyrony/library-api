@@ -12,6 +12,8 @@ class EmptySerializer(serializers.Serializer):
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
+    payment_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Borrowing
         fields = (
@@ -20,8 +22,13 @@ class BorrowingSerializer(serializers.ModelSerializer):
             "expected_return_date",
             "user",
             "book",
+            "payment_url",
         )
         read_only_fields = ("id", "user")
+
+    def get_payment_url(self, instance):
+        payment = instance.payments.first()
+        return payment.session_url if payment else None
 
     def validate_book(self, instance):
         if instance.inventory == 0:
@@ -41,7 +48,7 @@ class BorrowingSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class BorrowingListSerializer(BorrowingSerializer):
+class BorrowingListSerializer(serializers.ModelSerializer):
     book = serializers.StringRelatedField(read_only=True)
     user = serializers.SlugRelatedField(read_only=True, slug_field="email")
 
@@ -70,6 +77,7 @@ class BorrowingRetrieveSerializer(BorrowingSerializer):
             "actual_return_date",
             "user",
             "book",
+            "payment_url",
         )
         read_only_fields = (
             "id",
