@@ -31,14 +31,14 @@ def calculate_book_price(borrowing: Borrowing) -> int:
 
 
 def create_stripe_payment(borrowing: Borrowing) -> dict:
+    money_to_pay = calculate_book_price(borrowing)
     stripe_session = stripe.checkout.Session.create(
-        payment_method_types=["card"],
         mode="payment",
         line_items=[
             {
                 "price_data": {
                     "currency": "usd",
-                    "unit_amount": calculate_book_price(borrowing),
+                    "unit_amount": money_to_pay,
                     "product_data": {
                         "name": str(borrowing),
                         "description": f"It is borrowing that "
@@ -57,4 +57,11 @@ def create_stripe_payment(borrowing: Borrowing) -> dict:
         customer_email=borrowing.user.email,
     )
 
-    return {"session_id": stripe_session.id, "session_url": stripe_session.url}
+    return {
+        "session_id": stripe_session.id,
+        "session_url": stripe_session.url,
+        "money_to_pay": money_to_pay,
+    }
+
+
+# def get or change payment if session is expired

@@ -13,6 +13,8 @@ from borrowings.serializers import (
     EmptySerializer,
 )
 from borrowings.tasks import send_telegram_borrowing_notification
+from payments.models import Payment
+from payments.services import create_stripe_payment
 
 
 class BorrowingsViewSet(
@@ -64,8 +66,19 @@ class BorrowingsViewSet(
         return BorrowingSerializer
 
     def perform_create(self, serializer):
-        borrowing = serializer.save(user=self.request.user)
+        with transaction.atomic():
+            borrowing = serializer.save(user=self.request.user)
+            stripe_data = create_stripe_payment(borrowing)
+            Payment.objects.create(
+                type="PAYMENT",
+                borrowing=borrowing,
+                session_id=stripe_data["session_id"],
+                session_url=stripe_data["session_url"],
+                money_to_pay=stripe_data["money_to_pay"],
+            )
+
         send_telegram_borrowing_notification.delay(borrowing.pk)
+
 
     @action(
         detail=True,
