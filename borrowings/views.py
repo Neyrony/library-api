@@ -14,7 +14,7 @@ from borrowings.serializers import (
 )
 from borrowings.tasks import send_telegram_borrowing_notification
 from payments.models import Payment
-from payments.services import create_stripe_payment
+from payments.services import create_stripe_payment, get_or_update_stripe_session_url
 
 
 class BorrowingsViewSet(
@@ -79,6 +79,11 @@ class BorrowingsViewSet(
 
         send_telegram_borrowing_notification.delay(borrowing.pk)
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        get_or_update_stripe_session_url(instance.payments.all().first())
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @action(
         detail=True,

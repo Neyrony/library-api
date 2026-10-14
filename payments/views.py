@@ -1,5 +1,6 @@
 from rest_framework import mixins
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from payments.models import Payment
@@ -8,6 +9,7 @@ from payments.serializers import (
     PaymentDetailSerializer,
     PaymentSerializer,
 )
+from payments.services import get_or_update_stripe_session_url
 
 
 class PaymentViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet):
@@ -30,3 +32,9 @@ class PaymentViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericVi
         elif self.action == "retrieve":
             return PaymentDetailSerializer
         return PaymentSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance = get_or_update_stripe_session_url(instance)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
