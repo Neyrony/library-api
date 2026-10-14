@@ -5,6 +5,7 @@ from django.conf import settings
 from django.urls import reverse
 
 from borrowings.models import Borrowing
+from payments.models import Payment
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
@@ -64,4 +65,18 @@ def create_stripe_payment(borrowing: Borrowing) -> dict:
     }
 
 
-# def get or change payment if session is expired
+def get_or_update_stripe_session_url(payment: Payment) -> Payment:
+    if payment.status == "PAID":
+        return payment
+    try:
+        stripe_session = stripe.checkout.Session.retrieve(payment.session_id)
+    except stripe.error.StripeError:
+        return payment
+
+    if stripe_session.status == "expired":
+        stripe_data = create_stripe_payment(payment.borrowing)
+        payment.session_id = stripe_data["session_id"]
+        payment.session_url = stripe_data["session_url"]
+        payment.save()
+
+    return payment
