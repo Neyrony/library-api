@@ -1,3 +1,4 @@
+import stripe
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import viewsets, mixins, status
@@ -101,11 +102,32 @@ class BorrowingsViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        day_now = timezone.localdate()
+        stripe_data = None
+
+        try:
+            if day_now > borrowing.expected_return_date:
+                borrowing.actual_return_date = day_now
+                stripe_data = create_stripe_payment(borrowing)
+        except stripe.error.StripeError:
+            return Response(
+                {"error": "Failed to create payment"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
         with transaction.atomic():
-            borrowing.actual_return_date = timezone.localdate()
             borrowing.save()
             borrowing.book.increase_inventory()
+            if stripe_data is not None:
+                Payment.objects.create(
+                    type="FINE",
+                    borrowing=borrowing,
+                    session_id=stripe_data["session_id"],
+                    session_url=stripe_data["session_url"],
+                    money_to_pay=stripe_data["money_to_pay"],
+                )
 
+        borrowing.refresh_from_db()
         borrowing_serializer = BorrowingRetrieveSerializer(
             borrowing, context=self.get_serializer_context()
         )
