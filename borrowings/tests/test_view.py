@@ -72,8 +72,15 @@ class AuthenticatedUserTest(BorrowingTestData, APITestCaseAuthenticated):
         self.assertEqual(response.data, borrowing_serializer.data)
 
     @freeze_time("2026-10-9")
+    @patch("borrowings.views.create_stripe_payment")
     @patch("borrowings.views.send_telegram_borrowing_notification")
-    def test_create(self, mock_celery_task):
+    def test_create(self, mock_celery_task, mock_create_stripe_payment):
+        mock_create_stripe_payment.return_value = {
+            "session_id": "test_id",
+            "session_url": "https://stripe.com/",
+            "money_to_pay": 100,
+        }
+
         data = {
             "expected_return_date": timezone.localdate() + timedelta(days=1),
             "book": self.book.pk,
@@ -85,6 +92,7 @@ class AuthenticatedUserTest(BorrowingTestData, APITestCaseAuthenticated):
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        mock_create_stripe_payment.assert_called_once()
 
         self.assertEqual(
             response.data["expected_return_date"],

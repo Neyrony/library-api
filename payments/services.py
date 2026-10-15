@@ -1,5 +1,3 @@
-import os
-
 import stripe
 from django.conf import settings
 from django.urls import reverse
@@ -7,7 +5,7 @@ from django.urls import reverse
 from borrowings.models import Borrowing
 from payments.models import Payment
 
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 def calculate_book_price(borrowing: Borrowing) -> int:
