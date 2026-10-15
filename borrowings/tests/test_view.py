@@ -58,7 +58,8 @@ class AuthenticatedUserTest(BorrowingTestData, APITestCaseAuthenticated):
         self.assertEqual(response.data["count"], 1)
         self.assertEqual(response.data["results"], borrowing1_serializer.data)
 
-    def test_retrieve(self):
+    @patch("borrowings.views.get_or_update_stripe_session_url")
+    def test_retrieve(self, mock_lazy_update):
         response = self.client.get(get_detailed_url(self.borrowing.pk))
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -71,8 +72,15 @@ class AuthenticatedUserTest(BorrowingTestData, APITestCaseAuthenticated):
         self.assertEqual(response.data, borrowing_serializer.data)
 
     @freeze_time("2026-10-9")
+    @patch("borrowings.views.create_stripe_payment")
     @patch("borrowings.views.send_telegram_borrowing_notification")
-    def test_create(self, mock_celery_task):
+    def test_create(self, mock_celery_task, mock_create_stripe_payment):
+        mock_create_stripe_payment.return_value = {
+            "session_id": "test_id",
+            "session_url": "https://stripe.com/",
+            "money_to_pay": 100,
+        }
+
         data = {
             "expected_return_date": timezone.localdate() + timedelta(days=1),
             "book": self.book.pk,
@@ -84,6 +92,7 @@ class AuthenticatedUserTest(BorrowingTestData, APITestCaseAuthenticated):
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        mock_create_stripe_payment.assert_called_once()
 
         self.assertEqual(
             response.data["expected_return_date"],
@@ -110,7 +119,9 @@ class AdminUserTest(BorrowingTestData, APITestCaseAdmin):
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_return(self):
-        response = self.client.get(get_detailed_url(self.borrowing.pk))
+        response = self.client.post(
+            reverse("borrowings:borrowing-return", kwargs={"pk": self.borrowing.id})
+        )
 
         self.borrowing.refresh_from_db()
 
@@ -118,3 +129,12 @@ class AdminUserTest(BorrowingTestData, APITestCaseAdmin):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, borrowing_serializer.data)
+
+        response = self.client.post(
+            reverse("borrowings:borrowing-return", kwargs={"pk": self.borrowing.id})
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data["error"], "You can not return book, if it is already returned"
+        )

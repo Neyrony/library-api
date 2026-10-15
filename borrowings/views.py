@@ -1,3 +1,4 @@
+import stripe
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import viewsets, mixins, status
@@ -13,6 +14,8 @@ from borrowings.serializers import (
     EmptySerializer,
 )
 from borrowings.tasks import send_telegram_borrowing_notification
+from payments.models import Payment
+from payments.services import create_stripe_payment, get_or_update_stripe_session_url
 
 
 class BorrowingsViewSet(
@@ -64,8 +67,24 @@ class BorrowingsViewSet(
         return BorrowingSerializer
 
     def perform_create(self, serializer):
-        borrowing = serializer.save(user=self.request.user)
+        with transaction.atomic():
+            borrowing = serializer.save(user=self.request.user)
+            stripe_data = create_stripe_payment(borrowing)
+            Payment.objects.create(
+                type="PAYMENT",
+                borrowing=borrowing,
+                session_id=stripe_data["session_id"],
+                session_url=stripe_data["session_url"],
+                money_to_pay=stripe_data["money_to_pay"],
+            )
+
         send_telegram_borrowing_notification.delay(borrowing.pk)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        get_or_update_stripe_session_url(instance.payments.first())
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @action(
         detail=True,
@@ -83,11 +102,31 @@ class BorrowingsViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        borrowing.actual_return_date = timezone.localdate()
+        stripe_data = None
+
+        try:
+            if borrowing.actual_return_date > borrowing.expected_return_date:
+                stripe_data = create_stripe_payment(borrowing)
+        except stripe.error.StripeError:
+            return Response(
+                {"error": "Failed to create payment"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
         with transaction.atomic():
-            borrowing.actual_return_date = timezone.localdate()
             borrowing.save()
             borrowing.book.increase_inventory()
+            if stripe_data is not None:
+                Payment.objects.create(
+                    type="FINE",
+                    borrowing=borrowing,
+                    session_id=stripe_data["session_id"],
+                    session_url=stripe_data["session_url"],
+                    money_to_pay=stripe_data["money_to_pay"],
+                )
 
+        borrowing.refresh_from_db()
         borrowing_serializer = BorrowingRetrieveSerializer(
             borrowing, context=self.get_serializer_context()
         )

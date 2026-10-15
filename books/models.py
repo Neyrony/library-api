@@ -5,6 +5,8 @@ from django.utils.translation import gettext_lazy as _
 
 
 class Book(models.Model):
+    FINE_MULTIPLIER = 2
+
     class CoverChoices(models.TextChoices):
         HARD = "HARD", _("Hard")
         SOFT = "SOFT", _("Soft")
