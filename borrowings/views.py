@@ -102,12 +102,11 @@ class BorrowingsViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        day_now = timezone.localdate()
+        borrowing.actual_return_date = timezone.localdate()
         stripe_data = None
 
         try:
-            if day_now > borrowing.expected_return_date:
-                borrowing.actual_return_date = day_now
+            if borrowing.actual_return_date > borrowing.expected_return_date:
                 stripe_data = create_stripe_payment(borrowing)
         except stripe.error.StripeError:
             return Response(
