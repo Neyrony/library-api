@@ -82,7 +82,7 @@ class BorrowingsViewSet(
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        get_or_update_stripe_session_url(instance.payments.all().first())
+        get_or_update_stripe_session_url(instance.payments.first())
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
