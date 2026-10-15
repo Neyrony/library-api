@@ -58,7 +58,8 @@ class AuthenticatedUserTest(BorrowingTestData, APITestCaseAuthenticated):
         self.assertEqual(response.data["count"], 1)
         self.assertEqual(response.data["results"], borrowing1_serializer.data)
 
-    def test_retrieve(self):
+    @patch("borrowings.views.get_or_update_stripe_session_url")
+    def test_retrieve(self, mock_lazy_update):
         response = self.client.get(get_detailed_url(self.borrowing.pk))
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
