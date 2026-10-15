@@ -111,7 +111,9 @@ class AdminUserTest(BorrowingTestData, APITestCaseAdmin):
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_return(self):
-        response = self.client.get(get_detailed_url(self.borrowing.pk))
+        response = self.client.post(
+            reverse("borrowings:borrowing-return", kwargs={"pk": self.borrowing.id})
+        )
 
         self.borrowing.refresh_from_db()
 
@@ -119,3 +121,12 @@ class AdminUserTest(BorrowingTestData, APITestCaseAdmin):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, borrowing_serializer.data)
+
+        response = self.client.post(
+            reverse("borrowings:borrowing-return", kwargs={"pk": self.borrowing.id})
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data["error"], "You can not return book, if it is already returned"
+        )
