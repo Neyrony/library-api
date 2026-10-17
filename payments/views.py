@@ -69,3 +69,17 @@ class PaymentViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericVi
             payment.save()
 
         return Response(status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["GET"])
+    def success(self, request):
+        return Response(
+            {"details": "Payment was successful. Your order is being processed"},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=["GET"])
+    def cancel(self, request):
+        return Response(
+            {"details": "Payment was cancelled. You can complete it later"},
+            status=status.HTTP_200_OK,
+        )
