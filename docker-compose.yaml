@@ -89,10 +89,14 @@ services:
     volumes:
       - ./:/app
 
-  local_tunnel:
-    image: node:26-alpine
-    command: npx localtunnel --local-host library --port 8000 --subdomain my-custom-library-api
+  ngrok:
+    image: ngrok/ngrok:alpine
+    command: http library:8000 --url=${NGROK_URL_DOMAIN} --log=stdout
+    env_file:
+      - .env
     restart: on-failure
+    ports:
+      - "4040:4040"
     depends_on:
       - library
 
