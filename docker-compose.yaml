@@ -89,6 +89,12 @@ services:
     volumes:
       - ./:/app
 
+  local_tunnel:
+    image: node:26-alpine
+    command: npx localtunnel --local-host library --port 8000 --subdomain my-custom-library-api
+    restart: on-failure
+    depends_on:
+      - library
 
 volumes:
   local_db:
