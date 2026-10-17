@@ -50,7 +50,7 @@ def create_stripe_payment(borrowing: Borrowing) -> dict:
             }
         ],
         success_url=settings.DOMAIN
-        + reverse("borrowings:borrowing-success", kwargs={"pk": borrowing.pk})
+        + reverse("borrowings:borrowing-detail", kwargs={"pk": borrowing.pk})
         + "?session_id={CHECKOUT_SESSION_ID}",
         cancel_url=settings.DOMAIN
         + reverse("borrowings:borrowing-detail", kwargs={"pk": borrowing.pk}),
