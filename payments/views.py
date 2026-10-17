@@ -1,5 +1,9 @@
-from rest_framework import mixins
-from rest_framework.permissions import IsAuthenticated
+import os
+
+import stripe
+from rest_framework import mixins, status
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -38,3 +42,44 @@ class PaymentViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericVi
         instance = get_or_update_stripe_session_url(instance)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+    @action(detail=False, methods=["POST"], permission_classes=[AllowAny])
+    def webhook(self, request):
+        payload = request.body
+        sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
+        secret_key = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+        try:
+            event = stripe.Webhook.construct_event(payload, sig_header, secret_key)
+        except (ValueError, stripe.error.SignatureVerificationError):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if event["type"] == "checkout.session.completed":
+            session_id = event["data"]["object"]["id"]
+
+            try:
+                payment = Payment.objects.get(session_id=session_id)
+            except Payment.DoesNotExist:
+                return Response(
+                    {"error": "Payment does not exist"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            payment.status = "PAID"
+            payment.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["GET"])
+    def success(self, request):
+        return Response(
+            {"details": "Payment was successful. Your order is being processed"},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=["GET"])
+    def cancel(self, request):
+        return Response(
+            {"details": "Payment was cancelled. You can complete it later"},
+            status=status.HTTP_200_OK,
+        )

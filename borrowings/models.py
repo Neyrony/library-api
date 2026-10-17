@@ -39,4 +39,4 @@ class Borrowing(models.Model):
         return super().save(*args, **kwargs)
 
     class Meta:
-        ordering = ["borrow_date"]
+        ordering = ["-borrow_date"]

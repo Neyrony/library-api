@@ -84,3 +84,24 @@ class BorrowingRetrieveSerializer(BorrowingSerializer):
             "expected_return_date",
             "actual_return_date",
         )
+
+
+class BorrowingPaymentRetrieveSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    book = BookListRetrieveSerializer(read_only=True)
+
+    class Meta:
+        model = Borrowing
+        fields = (
+            "id",
+            "borrow_date",
+            "expected_return_date",
+            "actual_return_date",
+            "user",
+            "book",
+        )
+        read_only_fields = (
+            "id",
+            "expected_return_date",
+            "actual_return_date",
+        )

@@ -49,10 +49,8 @@ def create_stripe_payment(borrowing: Borrowing) -> dict:
                 "quantity": 1,
             }
         ],
-        success_url=settings.DOMAIN
-        + reverse("borrowings:borrowing-list"),  # It is temporary it will be changed
-        cancel_url=settings.DOMAIN
-        + reverse("borrowings:borrowing-list"),  # It is temporary it will be changed
+        success_url=settings.DOMAIN + reverse("payments:payment-success"),
+        cancel_url=settings.DOMAIN + reverse("payments:payment-cancel"),
         customer_email=borrowing.user.email,
     )
 

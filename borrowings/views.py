@@ -60,7 +60,7 @@ class BorrowingsViewSet(
     def get_serializer_class(self):
         if self.action == "list":
             return BorrowingListSerializer
-        elif self.action == "retrieve":
+        elif self.action in ("retrieve", "success", "return_book"):
             return BorrowingRetrieveSerializer
         elif self.action == "return_book":
             return EmptySerializer
@@ -127,7 +127,7 @@ class BorrowingsViewSet(
                 )
 
         borrowing.refresh_from_db()
-        borrowing_serializer = BorrowingRetrieveSerializer(
+        borrowing_serializer = self.get_serializer(
             borrowing, context=self.get_serializer_context()
         )
 
