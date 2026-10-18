@@ -29,7 +29,7 @@ def send_telegram_borrowing_notification(pk):
 @shared_task
 def daily_overdue_borrowing_notification():
     overdue_borrowing = Borrowing.objects.filter(
-        expected_return_date__lt=timezone.localtime(), actual_return_date__isnull=True
+        expected_return_date__lt=timezone.localdate(), actual_return_date__isnull=True
     ).values_list("id", flat=True)
 
     if overdue_borrowing:

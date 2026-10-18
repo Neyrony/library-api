@@ -218,7 +218,7 @@ CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 CELERY_BEAT_SCHEDULE = {
-    "send-notification-about-overdue-borrowinds-daily": {
+    "send-notification-about-overdue-borrowings-daily": {
         "task": "borrowings.tasks.daily_overdue_borrowing_notification",
         "schedule": crontab(hour=8, minute=0),
     },
