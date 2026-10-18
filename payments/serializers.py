@@ -27,7 +27,7 @@ class PaymentListSerializer(PaymentSerializer):
     borrowing = BorrowingListSerializer(read_only=True)
 
 
-class PaymentDetailSerializer(PaymentSerializer):
+class PaymentRetrieveSerializer(PaymentSerializer):
     status = serializers.CharField(read_only=True, source="get_status_display")
     type = serializers.CharField(read_only=True, source="get_type_display")
     borrowing = BorrowingPaymentRetrieveSerializer(read_only=True)

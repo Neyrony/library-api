@@ -10,7 +10,7 @@ from rest_framework.viewsets import GenericViewSet
 from payments.models import Payment
 from payments.serializers import (
     PaymentListSerializer,
-    PaymentDetailSerializer,
+    PaymentRetrieveSerializer,
     PaymentSerializer,
 )
 from payments.services import get_or_update_stripe_session_url
@@ -35,7 +35,7 @@ class PaymentViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericVi
         if self.action == "list":
             return PaymentListSerializer
         elif self.action == "retrieve":
-            return PaymentDetailSerializer
+            return PaymentRetrieveSerializer
         return PaymentSerializer
 
     def retrieve(self, request, *args, **kwargs):
