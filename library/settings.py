@@ -233,3 +233,16 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 
 DOMAIN = "http://127.0.0.1:8001"
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Library API",
+    "DESCRIPTION": "A library API designed "
+    "to make a librarian's life easier and structured",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SERVE_PERMISSION": ["rest_framework.permissions.IsAdminUser"],
+    "SERVE_AUTHENTICATION": [
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
