@@ -6,13 +6,13 @@ from payments.models import Payment
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
     list_display = (
-        "session_id",
-        "session_url",
         "borrowing",
         "status",
         "type",
         "money_to_pay",
         "created_at",
+        "session_id",
+        "session_url",
     )
     list_filter = (
         "status",
