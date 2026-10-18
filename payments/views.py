@@ -14,6 +14,7 @@ from payments.serializers import (
     PaymentSerializer,
 )
 from payments.services import get_or_update_stripe_session_url
+from payments.tasks import telegram_notification_on_successful_payment
 
 
 class PaymentViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet):
@@ -67,6 +68,8 @@ class PaymentViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericVi
 
             payment.status = "PAID"
             payment.save()
+
+            telegram_notification_on_successful_payment.delay(payment.id)
 
         return Response(status=status.HTTP_200_OK)
 
