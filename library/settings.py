@@ -221,7 +221,11 @@ CELERY_BEAT_SCHEDULE = {
     "send-notification-about-overdue-borrowinds-daily": {
         "task": "borrowings.tasks.daily_overdue_borrowing_notification",
         "schedule": crontab(hour=8, minute=0),
-    }
+    },
+    "check-expired-srtipe-sessions": {
+        "task": "payments.tasks.check_expired_stripe_session",
+        "schedule": 60,
+    },
 }
 
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
