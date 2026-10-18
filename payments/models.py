@@ -6,6 +6,7 @@ class Payment(models.Model):
     class StatusChoices(models.TextChoices):
         PENDING = "PENDING", _("Pending")
         PAID = "PAID", _("Paid")
+        EXPIRED = "EXPIRED", _("Expired")
 
     class TypeChoices(models.TextChoices):
         PAYMENT = "PAYMENT", _("Payment")

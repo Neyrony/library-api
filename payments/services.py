@@ -73,6 +73,7 @@ def get_or_update_stripe_session_url(payment: Payment) -> Payment:
         stripe_data = create_stripe_payment(payment.borrowing)
         payment.session_id = stripe_data["session_id"]
         payment.session_url = stripe_data["session_url"]
+        payment.status = "PENDING"
         payment.save()
 
     return payment
