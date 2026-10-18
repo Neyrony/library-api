@@ -66,6 +66,19 @@ class BorrowingsViewSet(
             return EmptySerializer
         return BorrowingSerializer
 
+    def create(self, request, *args, **kwargs):
+        if Payment.objects.filter(
+            status="PENDING", borrowing__user=request.user
+        ).exists():
+            return Response(
+                {
+                    "error": "You can't borrow new book "
+                    "if you have at least one unpaid payment",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         with transaction.atomic():
             borrowing = serializer.save(user=self.request.user)
