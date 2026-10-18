@@ -12,6 +12,7 @@ class PaymentAdmin(admin.ModelAdmin):
         "status",
         "type",
         "money_to_pay",
+        "created_at",
     )
     list_filter = (
         "status",
