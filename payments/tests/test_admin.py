@@ -16,5 +16,8 @@ class BorrowingAdminTest(PaymentTestData, TestCaseAuthenticated):
         self.assertContains(response, self.payment.session_id)
         self.assertContains(response, self.payment.money_to_pay)
         self.assertContains(
-            response, dateformat.format(timezone.localtime(self.payment.created_at), "N j, Y, g:i a")
+            response,
+            dateformat.format(
+                timezone.localtime(self.payment.created_at), "N j, Y, g:i a"
+            ),
         )
