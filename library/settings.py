@@ -247,4 +247,5 @@ SPECTACULAR_SETTINGS = {
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
+    "REDOC_DIST": "https://cdn.jsdelivr.net/npm/redoc@2.0.0-rc.76",
 }
