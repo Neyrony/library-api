@@ -1,7 +1,15 @@
 import stripe
 from django.db import transaction
 from django.utils import timezone
-from rest_framework import viewsets, mixins, status
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import (
+    extend_schema_view,
+    OpenApiParameter,
+    extend_schema,
+    OpenApiResponse,
+    inline_serializer,
+)
+from rest_framework import viewsets, mixins, status, serializers
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
@@ -11,13 +19,65 @@ from borrowings.serializers import (
     BorrowingListSerializer,
     BorrowingRetrieveSerializer,
     BorrowingSerializer,
-    EmptySerializer,
 )
 from borrowings.tasks import send_telegram_borrowing_notification
 from payments.models import Payment
 from payments.services import create_stripe_payment, get_or_update_stripe_session_url
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="Show a list of all borrowings",
+        description="Show a list of all borrowings "
+        "that can be filtered by users and active status",
+        parameters=[
+            OpenApiParameter(
+                name="user_id",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description="List of user whose borrowing "
+                "you want to see separated by comma",
+            ),
+            OpenApiParameter(
+                name="is_active",
+                type=OpenApiTypes.BOOL,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description="Status of borrowing, can be true or false",
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="Show a particular borrowing by id",
+        description="Show a particular borrowing by id and "
+        "lazy update payment if payment status is expired",
+    ),
+    create=extend_schema(
+        summary="Create a new borrowing",
+        description="Create a new borrowing and validate fields with custom validation",
+    ),
+    return_book=extend_schema(
+        summary="Return a borrowing",
+        description="Return a borrowing and create payment if borrowing is overdue",
+        request=None,
+        responses={
+            status.HTTP_200_OK: BorrowingRetrieveSerializer,
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                response=inline_serializer(
+                    name="ErrorReturnSerializer",
+                    fields={"error": serializers.CharField()},
+                ),
+            ),
+            status.HTTP_503_SERVICE_UNAVAILABLE: OpenApiResponse(
+                response=inline_serializer(
+                    name="StripeServerErrorSerializer",
+                    fields={"error": serializers.CharField()},
+                ),
+            ),
+        },
+    ),
+)
 class BorrowingsViewSet(
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
@@ -62,8 +122,6 @@ class BorrowingsViewSet(
             return BorrowingListSerializer
         elif self.action in ("retrieve", "success", "return_book"):
             return BorrowingRetrieveSerializer
-        elif self.action == "return_book":
-            return EmptySerializer
         return BorrowingSerializer
 
     def create(self, request, *args, **kwargs):

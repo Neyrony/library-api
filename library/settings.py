@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
+    "drf_spectacular",
     "django_celery_beat",
     "user",
     "books",
@@ -192,6 +193,7 @@ REST_FRAMEWORK = {
         "anon": "100/hour",
         "user": "1000/hour",
     },
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 SIMPLE_JWT = {
@@ -233,3 +235,17 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 
 DOMAIN = "http://127.0.0.1:8001"
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Library API",
+    "DESCRIPTION": "A library API designed "
+    "to make a librarian's life easier and structured",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
+    "SERVE_AUTHENTICATION": [
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "REDOC_DIST": "https://cdn.jsdelivr.net/npm/redoc@2.0.0-rc.76",
+}

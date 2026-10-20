@@ -1,7 +1,14 @@
 import os
 
 import stripe
-from rest_framework import mixins, status
+from drf_spectacular.utils import (
+    extend_schema_view,
+    extend_schema,
+    inline_serializer,
+    OpenApiRequest,
+    OpenApiResponse,
+)
+from rest_framework import mixins, status, serializers
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -17,6 +24,77 @@ from payments.services import get_or_update_stripe_session_url
 from payments.tasks import telegram_notification_on_successful_payment
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="Shows a list of payment",
+        description="Shows a list of user's payment or "
+        "if user is admin shows all payments",
+    ),
+    retrieve=extend_schema(
+        summary="Shows detailed information about payment",
+        description="Shows detailed information only about user's payment "
+        "but user can not check other payments if he is not admin",
+    ),
+    webhook=extend_schema(
+        summary="Receive data from stripe",
+        description="Receive post response from stripe with detailed information "
+        "about user's payment and proceed it",
+        request=OpenApiRequest(
+            request=inline_serializer(
+                name="StripeWebhookSerializer",
+                fields={
+                    "id": serializers.CharField(),
+                    "type": serializers.CharField(),
+                    "data": serializers.JSONField(),
+                },
+            )
+        ),
+        responses={
+            status.HTTP_200_OK: None,
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                response=inline_serializer(
+                    name="StripeWebhookErrorSerializer",
+                    fields={
+                        "error": serializers.CharField(),
+                    },
+                ),
+                description="Payment was not successful",
+            ),
+            status.HTTP_404_NOT_FOUND: None,
+        },
+    ),
+    success=extend_schema(
+        summary="Shows information that payment was successful",
+        request=None,
+        responses={
+            status.HTTP_200_OK: OpenApiResponse(
+                response=inline_serializer(
+                    name="SuccessPaymentSerializer",
+                    fields={
+                        "details": serializers.CharField(),
+                    },
+                ),
+                description="Payment was successful. Your order is being processed",
+            ),
+        },
+    ),
+    cancel=extend_schema(
+        summary="Shows information that payment was cancelled and "
+        "user can complete it later",
+        request=None,
+        responses={
+            status.HTTP_200_OK: OpenApiResponse(
+                response=inline_serializer(
+                    name="CancelPaymentSerializer",
+                    fields={
+                        "details": serializers.CharField(),
+                    },
+                ),
+                description="Payment was cancelled. You can complete it later",
+            )
+        },
+    ),
+)
 class PaymentViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet):
     permission_classes = [IsAuthenticated]
 
