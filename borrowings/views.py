@@ -36,7 +36,8 @@ from payments.services import create_stripe_payment, get_or_update_stripe_sessio
                 type=OpenApiTypes.STR,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description="List of user whose borrowing you want to see separated by comma",
+                description="List of user whose borrowing "
+                "you want to see separated by comma",
             ),
             OpenApiParameter(
                 name="is_active",

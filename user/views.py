@@ -69,7 +69,8 @@ class UserManageView(RetrieveUpdateAPIView):
                     name="LogoutErrorResponse",
                     fields={"error": serializers.CharField()},
                 ),
-                description="User successfully logged out, refresh token was moved into blacklist",
+                description="User successfully logged out, "
+                "refresh token was moved into blacklist",
             ),
         },
     ),
